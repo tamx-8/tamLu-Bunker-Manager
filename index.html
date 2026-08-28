@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#b5121b">
+  <title>tamLu Bunker Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="app-header">
+  <div><div class="eyebrow">FARM MANAGEMENT</div><h1>tamLu Bunker Manager</h1></div>
+  <button id="addBtn" class="primary">＋ バンカー追加</button>
+</header>
+<main class="container">
+<section id="dashboard" class="view active">
+  <div class="section-title">
+    <div><h2>バンカー一覧</h2><p>残量・水分量・開封状態をひと目で確認</p></div>
+    <label class="sort-control">並び替え
+      <select id="sortSelect">
+        <option value="name">バンカー名順</option>
+        <option value="crop">種類順</option>
+        <option value="updated">更新日順</option>
+        <option value="number">番号順</option>
+      </select>
+    </label>
+  </div>
+  <div id="bunkerList" class="bunker-grid"></div>
+</section>
+
+<section id="detail" class="view">
+  <button id="backBtn" class="back">← 一覧へ戻る</button>
+  <div id="detailContent"></div>
+</section>
+
+<section id="formView" class="view">
+  <button id="formBackBtn" class="back">← 一覧へ戻る</button>
+  <div class="form-card">
+    <h2 id="formTitle">バンカー登録</h2>
+    <p class="muted">バンカー情報・詰め込み情報を登録します。</p>
+    <form id="bunkerForm">
+      <h3>基本情報</h3>
+      <div class="two-col">
+        <label>バンカー名<input name="name" placeholder="例：第1バンカー"></label>
+        <label>番号<input name="number" placeholder="例：B-01" required></label>
+      </div>
+      <h3>サイズ</h3>
+      <div class="three-col">
+        <label>幅（m）<input id="width" name="width" type="number" step="0.01" min="0" required></label>
+        <label>奥行き（m）<input id="depth" name="depth" type="number" step="0.01" min="0" required></label>
+        <label>高さ（m）<input id="height" name="height" type="number" step="0.01" min="0" required></label>
+      </div>
+      <div class="capacity-box">理論容量：<strong id="capacityPreview">0</strong> m³</div>
+
+      <h3>詰め込み情報</h3>
+      <div class="two-col">
+        <label>種類
+          <select name="crop"><option>GS1</option><option>GS2</option><option>GS3</option><option>CS</option><option>ソルガム</option></select>
+        </label>
+        <label>品種<input name="variety" placeholder="例：チモシー、オーチャード"></label>
+        <label>収穫日<input name="harvestDate" type="date"></label>
+        <label>天気<select name="weather"><option>晴れ</option><option>曇り</option><option>雨</option><option>その他</option></select></label>
+        <label>収穫時の状態<select name="condition"><option>ベスト</option><option>乾燥</option><option>湿気</option><option>その他</option></select></label>
+        <label>実際に詰めた面積（ha）<input name="area" type="number" step="0.01" min="0"></label>
+        <label>実際に詰めた量（t）<input name="amount" type="number" step="0.01" min="0"></label>
+      </div>
+
+      <h3>開封・発酵</h3>
+      <div class="two-col">
+        <label>開封日<input name="openingDate" type="date"></label>
+        <label>発酵状態<select name="fermentation"><option>未確認</option><option>良好</option><option>要確認</option><option>不良</option></select></label>
+      </div>
+
+      <h3>初回の記録</h3>
+      <div class="two-col">
+        <label>残量（%）<input name="remaining" type="number" step="1" min="0" max="100" value="100"></label>
+        <label>水分量（%）<input name="moisture" type="number" step="0.1" min="0" max="100" placeholder="例：42.5"></label>
+      </div>
+      <label>記録メモ<textarea name="memo" placeholder="水分量の測定条件など"></textarea></label>
+
+      <button class="primary save" type="submit">💾 <span id="saveLabel">バンカーを保存</span></button>
+    </form>
+  </div>
+</section>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
