@@ -6,7 +6,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 const save=()=>localStorage.setItem(KEY,JSON.stringify(bunkers));
 const esc=(v="")=>String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#039;"}[c]));
 const cropIcon=c=>["GS1","GS2","GS3"].includes(c)?"🌿":c==="CS"?"🌽":"🌾";
-const storageFactor=c=>["GS1","GS2","GS3"].includes(c)?0.7:0.8;
+const storageFactor=c=>["GS1","GS2","GS3"].includes(c)?0.7:c==="CS"||c==="ソルガム"?0.8:0;
 const siloVolume=b=>(+b.width||0)*(+b.depth||0)*(+b.height||0);
 const theoreticalTon=b=>siloVolume(b)*storageFactor(b.crop);
 const formatNum=n=>Number(n||0).toFixed(2).replace(/\.00$/,'').replace(/(\.\d)0$/,'$1');
@@ -43,7 +43,7 @@ function openDetail(id){
  selectedId=id;const b=bunkers.find(x=>x.id===id);if(!b)return;
  const moisture=(b.moistureRecords||[]).slice().reverse();const history=(b.history||[]).slice().reverse();
  $("#detailContent").innerHTML=`<div class="detail-card">
- <div class="detail-header"><div><span class="badge">${esc(b.crop)}</span><h2>${esc(b.number)} ${esc(b.name||"")}</h2><p class="muted"><span class="crop-icon">${cropIcon(b.crop)}</span> ${esc(b.variety||"品種未設定")}</p></div><div class="action-row"><button onclick="editBunker()">✏️ 修正</button><button class="danger" onclick="deleteBunker()">🗑️ 削除</button></div></div>
+ <div class="detail-header"><div><span class="badge">${esc(b.crop||"未設定")}</span><h2>${esc(b.number)} ${esc(b.name||"")}</h2><p class="muted"><span class="crop-icon">${cropIcon(b.crop)}</span> ${esc(b.variety||"品種未設定")}</p></div><div class="action-row"><button onclick="editBunker()">✏️ 修正</button><button class="reset-btn" onclick="resetBunkerContents()">🔄 中身をリセット</button><button class="danger" onclick="deleteBunker()">🗑️ 削除</button></div></div>
  <div class="detail-remaining"><small>現在の残量</small><div><strong>${b.remaining}%</strong></div><div class="bar"><div style="width:${Math.max(0,Math.min(100,b.remaining))}%"></div></div><div class="detail-ton">現在の推定残量：<strong>${formatNum(theoreticalTon(b)*(Number(b.remaining)||0)/100)} t</strong></div><button class="primary" style="margin-top:14px" onclick="addRemaining()">残量を更新</button></div>
  <h3>バンカーサイズ</h3><div class="info-grid"><div class="info"><small>幅</small>${b.width} m</div><div class="info"><small>奥行き</small>${b.depth} m</div><div class="info"><small>高さ</small>${b.height} m</div><div class="info"><small>サイロ容積</small>${formatNum(siloVolume(b))} m³</div><div class="info"><small>理論値収容トン数</small>${formatNum(theoreticalTon(b))} t</div><div class="info"><small>換算係数</small>${storageFactor(b.crop)*100}%</div></div>
  <h3>詰め込み情報</h3><div class="info-grid"><div class="info"><small>収穫日</small>${esc(b.harvestDate||"—")}</div><div class="info"><small>天気</small>${esc(b.weather)}</div><div class="info"><small>収穫時の状態</small>${esc(b.condition)}</div><div class="info"><small>詰め込み面積</small>${b.area||"—"} ha</div><div class="info"><small>実際の詰め込み量</small>${b.amount||"—"} t</div></div>
@@ -71,6 +71,29 @@ $("#bunkerForm").onsubmit=e=>{
  save();renderHome();show("#dashboard")
 };
 function editBunker(){const b=bunkers.find(x=>x.id===selectedId);editingId=b.id;$("#formTitle").textContent="バンカー情報を修正";$("#saveLabel").textContent="変更を保存";const form=$("#bunkerForm");Object.entries(b).forEach(([k,v])=>{const el=form.elements[k];if(el&&typeof v!=="object")el.value=v});calcCapacity();show("#formView")}
+
+function resetBunkerContents(){
+ const b=bunkers.find(x=>x.id===selectedId);
+ if(!b)return;
+ const ok=confirm(`「${b.number} ${b.name||""}」の中身をリセットしますか？\n\n種類・品種・収穫情報・詰め込み量・開封/発酵情報・残量・残量履歴・水分記録・コメントをすべて消去します。\n\n※バンカー名・番号・サイズはそのまま残ります。`);
+ if(!ok)return;
+ b.crop="";
+ b.variety="";
+ b.harvestDate="";
+ b.weather="";
+ b.condition="";
+ b.area="";
+ b.amount="";
+ b.openingDate="";
+ b.fermentation="";
+ b.remaining=0;
+ b.history=[];
+ b.moistureRecords=[];
+ b.comment="";
+ save();
+ openDetail(selectedId);
+ alert("バンカーの中身・記録をリセットしました。\nバンカー名・番号・サイズは残っています。");
+}
 function deleteBunker(){const b=bunkers.find(x=>x.id===selectedId);if(confirm(`「${b.number}」を削除しますか？\nこのバンカーの記録もすべて削除されます。`)){bunkers=bunkers.filter(x=>x.id!==selectedId);save();renderHome();show("#dashboard")}}
 function addRemaining(){const b=bunkers.find(x=>x.id===selectedId),v=prompt("現在の残量を入力してください（0〜100%）",b.remaining);if(v===null)return;const n=Number(v);if(!Number.isFinite(n)||n<0||n>100)return alert("0〜100の数字を入力してください。");b.remaining=Math.round(n);b.history=b.history||[];b.history.push({date:today(),value:b.remaining});save();openDetail(selectedId)}
 function addMoisture(){const b=bunkers.find(x=>x.id===selectedId),v=prompt("水分量を入力してください（%）");if(v===null)return;const n=Number(v);if(!Number.isFinite(n)||n<0||n>100)return alert("0〜100の数字を入力してください。");const note=prompt("メモ（任意）","");b.moistureRecords=b.moistureRecords||[];b.moistureRecords.push({date:today(),value:n,note:note||""});save();openDetail(selectedId)}

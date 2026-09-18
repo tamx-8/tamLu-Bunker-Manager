@@ -24,3 +24,8 @@ label{display:block;font-size:13px;font-weight:700;margin-bottom:12px}input,sele
 
 .detail-comment{min-height:140px;margin-top:8px;}
 .summary-meta{flex-wrap:wrap}
+
+
+/* バンカー中身リセット */
+.reset-btn{background:#fff3cd;color:#7a5b00;border:1px solid #e2c35a}
+.reset-btn:hover{filter:brightness(.97)}
